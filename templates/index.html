@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>BillRoulette</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+    <div class="app-container">
+        <h1>🎲 BillRoulette</h1>
+        <p class="tagline">Let chance decide who pays — or split it fair and square!</p>
+
+        <form method="POST">
+            <label for="friends">👥 Enter friends (comma-separated):</label>
+            <input type="text" id="friends" name="friends" placeholder="e.g. Aisha, Aliyu, John" required />
+
+            <label>🔧 Choose mode:</label>
+            <div class="radio-group">
+                <label><input type="radio" name="mode" value="random" checked /> Random Payer</label>
+                <label><input type="radio" name="mode" value="split" /> Split Bill</label>
+            </div>
+
+            <label for="split_count">🧮 Number of people to split among:</label>
+            <input
+                type="number"
+                id="split_count"
+                name="split_count"
+                min="1"
+                placeholder="e.g. 2"
+            />
+
+            <label for="bill_amount">💰 Total bill amount (optional):</label>
+            <input
+                type="number"
+                id="bill_amount"
+                name="bill_amount"
+                step="0.01"
+                placeholder="e.g. 99.99"
+            />
+
+            <button type="submit">🎯 Suggest</button>
+        </form>
+
+        {% if result %}
+        <div class="result-box">
+            <p>{{ result }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const splitRadio = document.querySelector('input[value="split"]');
+            const randomRadio = document.querySelector('input[value="random"]');
+            const splitCountInput = document.getElementById('split_count');
+            const splitCountLabel = document.querySelector('label[for="split_count"]');
+
+            function toggleSplitCount() {
+                if (splitRadio.checked) {
+                    splitCountInput.style.display = 'block';
+                    splitCountLabel.style.display = 'block';
+                    splitCountInput.required = true;
+                } else {
+                    splitCountInput.style.display = 'none';
+                    splitCountLabel.style.display = 'none';
+                    splitCountInput.required = false;
+                    splitCountInput.value = '';
+                }
+            }
+
+            // Initial toggle on page load
+            toggleSplitCount();
+
+            // Add event listeners
+            splitRadio.addEventListener('change', toggleSplitCount);
+            randomRadio.addEventListener('change', toggleSplitCount);
+        });
+    </script>
+</body>
+</html>
