@@ -9,42 +9,55 @@
 <body>
     <div class="app-container">
         <h1>🎲 BillRoulette</h1>
-        <p class="tagline">Let chance decide who pays — or split it fair and square!</p>
+        <p class="tagline">Let chance decide who pays — or split it randomly!</p>
 
         <form method="POST">
             <label for="friends">👥 Enter friends (comma-separated):</label>
-            <input type="text" id="friends" name="friends" placeholder="e.g. Aisha, Aliyu, John" required />
+            <input type="text" id="friends" name="friends" placeholder="e.g. Aisha, Aliyu, John" required value="{{ friends or '' }}" />
 
             <label>🔧 Choose mode:</label>
             <div class="radio-group">
-                <label><input type="radio" name="mode" value="random" checked /> Random Payer</label>
-                <label><input type="radio" name="mode" value="split" /> Split Bill</label>
+                <label><input type="radio" name="mode" value="random" {% if not split_mode %}checked{% endif %} /> Random Payer</label>
+                <label><input type="radio" name="mode" value="split" {% if split_mode %}checked{% endif %} /> Split Bill</label>
             </div>
 
-            <label for="split_count">🧮 Number of people to split among:</label>
-            <input
-                type="number"
-                id="split_count"
-                name="split_count"
-                min="1"
-                placeholder="e.g. 2"
-            />
+            <label for="split_count" id="split_count_label">🧮 Number of people to split among:</label>
+            <input type="number" id="split_count" name="split_count" placeholder="e.g. 3" min="1" value="{{ request.form.split_count or '' }}" />
 
-            <label for="bill_amount">💰 Total bill amount (optional):</label>
+            <label for="bill_amount">💰 Total bill amount:</label>
             <input
                 type="number"
                 id="bill_amount"
                 name="bill_amount"
-                step="0.01"
-                placeholder="e.g. 99.99"
+                step="1"
+                placeholder="e.g. 5000"
+                required
+                value="{{ bill_amount or '' }}"
             />
 
             <button type="submit">🎯 Suggest</button>
         </form>
 
-        {% if result %}
+        {% if error %}
+        <div class="result-box error">
+            <p>{{ error }}</p>
+        </div>
+        {% endif %}
+
+        {% if payer %}
         <div class="result-box">
-            <p>{{ result }}</p>
+            <p>💸 The bill of ₦{{ bill_amount }} will be paid by <strong>{{ payer }}</strong>.</p>
+        </div>
+        {% endif %}
+
+        {% if split_result %}
+        <div class="result-box">
+            <p>💸 The bill of ₦{{ bill_amount }} will be randomly shared among the following friends:</p>
+            <ul>
+                {% for name, amount in split_result.items() %}
+                    <li><strong>{{ name }}</strong> pays ₦{{ amount }}</li>
+                {% endfor %}
+            </ul>
         </div>
         {% endif %}
     </div>
@@ -54,7 +67,7 @@
             const splitRadio = document.querySelector('input[value="split"]');
             const randomRadio = document.querySelector('input[value="random"]');
             const splitCountInput = document.getElementById('split_count');
-            const splitCountLabel = document.querySelector('label[for="split_count"]');
+            const splitCountLabel = document.getElementById('split_count_label');
 
             function toggleSplitCount() {
                 if (splitRadio.checked) {
@@ -69,10 +82,7 @@
                 }
             }
 
-            // Initial toggle on page load
             toggleSplitCount();
-
-            // Add event listeners
             splitRadio.addEventListener('change', toggleSplitCount);
             randomRadio.addEventListener('change', toggleSplitCount);
         });
